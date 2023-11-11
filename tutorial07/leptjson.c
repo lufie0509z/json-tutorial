@@ -346,6 +346,7 @@ int lept_parse(lept_value* v, const char* json) {
     return ret;
 }
 
+#if 0
 static void lept_stringify_string(lept_context* c, const char* s, size_t len) {
     assert(s != NULL);
 
@@ -372,6 +373,51 @@ static void lept_stringify_string(lept_context* c, const char* s, size_t len) {
     }
     PUTS(c, "\"", 1);
 }
+
+#else
+static void lept_stringify_string(lept_context* c, const char* s, size_t len) {
+    assert(s != NULL);
+
+    static const char hex_digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+    
+    size_t i; 
+    size_t cnt = 0;
+
+    size_t old_top = c->top;
+    char* p = (char*)lept_context_push(c, len * 6 + 2);
+    
+    *p++ = '"'; cnt++;
+
+    for (i = 0; i < len; i++) {
+        unsigned char ch = (unsigned char)s[i];
+        switch(ch) {
+            case '\"': *p++ = '\\'; *p++ = '\"'; cnt += 2; break;
+            case '\\': *p++ = '\\'; *p++ = '\\'; cnt += 2; break;
+            case '\b': *p++ = '\\'; *p++ = 'b';  cnt += 2; break;
+            case '\f': *p++ = '\\'; *p++ = 'f';  cnt += 2; break;
+            case '\n': *p++ = '\\'; *p++ = 'n';  cnt += 2; break;
+            case '\r': *p++ = '\\'; *p++ = 'r';  cnt += 2; break;
+            case '\t': *p++ = '\\'; *p++ = 't';  cnt += 2; break;
+            default:
+                if (ch < 0x20) {
+                    *p++ = '\\'; *p++ = 'u'; *p++ = '0'; *p++ = '0';
+                    *p++ = hex_digits[ch >> 4];
+                    *p++ = hex_digits[ch & 15];
+                    cnt += 6;
+                } 
+                else {
+                    *p++ = s[i];
+                    cnt++;
+                }
+        }
+    }
+    *p++ = '"'; cnt++;
+    c->top = old_top + cnt;
+}
+
+
+#endif
+
 
 static void lept_stringify_value(lept_context* c, const lept_value* v) {
     size_t i;
