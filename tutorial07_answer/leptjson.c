@@ -346,7 +346,7 @@ int lept_parse(lept_value* v, const char* json) {
     return ret;
 }
 
-#if 0
+#if 
 // Unoptimized
 static void lept_stringify_string(lept_context* c, const char* s, size_t len) {
     size_t i;
